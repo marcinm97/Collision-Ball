@@ -142,11 +142,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="collisionBalls.cpp" />
     <ClCompile Include="collisionBallsMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="collisionBallsHeader.h" />
+    <ClInclude Include="olcConsoleGameEngine.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
