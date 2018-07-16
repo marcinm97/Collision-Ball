@@ -104,7 +104,7 @@ public:
 				{
 					if (DoCirclesOverlap(ball.px, ball.py, ball.radius, target.px, target.py, target.radius))
 					{
-						float fDistance = (sqrtf((ball.px - target.px)*(ball.px - target.px)) + sqrtf((ball.py - target.py) * (ball.py - target.py)));
+						float fDistance = (sqrtf((ball.px - target.px)*(ball.px - target.px) + (ball.py - target.py) * (ball.py - target.py)));
 						float fOverlap = 0.5f * (fDistance - ball.radius - target.radius);
 
 						// current ball
