@@ -98,6 +98,7 @@ public:
 		if (m_mouse[0].bReleased) {
 			pSelectBall = nullptr;
 		}
+
 		if (m_mouse[1].bReleased) {
 			if (pSelectBall != nullptr)
 			{
@@ -105,9 +106,14 @@ public:
 				pSelectBall->vy = 5.0f * ((pSelectBall->py) - (float)m_mousePosY);
 			}
 		}
+
+		// vector of pairs which store two pointers to two balls
+
 		std::vector<std::pair<sBall*, sBall*>> vecCollidingPairs;
 
 		for (auto& ball : vecBalls) {
+			ball.ax = -ball.vx * 0.8f;
+			ball.ay = -ball.vy * 0.8f;
 			ball.vx += ball.ax * fElapsedTime;
 			ball.vy += ball.ax * fElapsedTime;
 			ball.px += ball.vx * fElapsedTime;
@@ -151,7 +157,25 @@ public:
 				}
 			}
 		}
-	    
+		for (auto c : vecCollidingPairs) {
+			sBall* b1 = c.first;
+			sBall* b2 = c.second;
+			float fDistance = sqrtf((b1->px - b2->px) * (b1->px - b2->px) + (b1->py - b2->py) * (b1->py - b2->py));
+
+			float nx = (b2->px - b1->px) / fDistance;
+			float ny = (b2->py - b1->py) / fDistance;
+
+			float tx = -ny;
+			float ty = nx;
+
+			float dpTan1 = b1->vx * tx + b1->vy * ty;
+			float dpTan2 = b2->vx * tx + b2->vy * ty;
+
+			b1->vx = tx * dpTan1;
+			b1->vy = ty * dpTan1;
+			b2->vx = tx * dpTan2;
+			b2->vy = ty * dpTan2;
+		}
 
 
 		Fill(0, 0, ScreenWidth(), ScreenHeight(), ' '); // clear screen
