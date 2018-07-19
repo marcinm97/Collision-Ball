@@ -25,7 +25,7 @@ private:
 	sBall* pSelectBall;
 
 	void addBall(float x, float y, float r) {
-		srand(time(NULL));				
+		//srand(time(NULL));				
 		sBall b;
 		b.px = x;
 		b.py = y;
@@ -58,12 +58,13 @@ public:
 			modelCircle.push_back({ cosf(i / (float)(nPoints - 1) * 2.0f * 3.14159f),sinf(i / (float)(nPoints - 1)* 2.0f * 3.14159f) });
 		// generating points to draw objects
 
-		float fDefaultRad = 10.0f;
+		float fDefaultRad = 8.0f;
 
-		addBall(ScreenWidth() * 0.25f, ScreenHeight() * 0.5f, fDefaultRad);
-		addBall(ScreenWidth() * 0.75f, ScreenHeight() * 0.5f, fDefaultRad);
-		addBall(ScreenWidth() * 0.75f, ScreenHeight() * 0.9f, fDefaultRad);
-		
+	//	addBall(ScreenWidth() * 0.25f, ScreenHeight() * 0.5f, fDefaultRad);
+	//	addBall(ScreenWidth() * 0.75f, ScreenHeight() * 0.5f, fDefaultRad);
+	//	addBall(ScreenWidth() * 0.75f, ScreenHeight() * 0.9f, fDefaultRad);
+		for (int i = 0; i < 10; ++i)
+			addBall(rand() % ScreenWidth(), rand() % ScreenHeight(), fDefaultRad);
 
 		return true;
 	}
@@ -77,7 +78,7 @@ public:
 			return fabs((x1 - px)*(x1 - px) + (y1 - py)* (y1 - py)) < (r1*r1);         // checking if mouse is in a circle range
 		};
 
-		if (m_mouse[0].bPressed){  // what happens when we press left mouse button
+		if (m_mouse[0].bPressed || m_mouse[1].bPressed){  // what happens when we press left or right mouse button
 			pSelectBall = nullptr;
 			for (auto& ball : vecBalls) {
 				if (IsPointInCircle(ball.px, ball.py,ball.radius, m_mousePosX, m_mousePosY)) {
@@ -97,6 +98,34 @@ public:
 		if (m_mouse[0].bReleased) {
 			pSelectBall = nullptr;
 		}
+		if (m_mouse[1].bReleased) {
+			if (pSelectBall != nullptr)
+			{
+				pSelectBall->vx = 5.0f * ((pSelectBall->px) - (float)m_mousePosX);
+				pSelectBall->vy = 5.0f * ((pSelectBall->py) - (float)m_mousePosY);
+			}
+		}
+		std::vector<std::pair<sBall*, sBall*>> vecCollidingPairs;
+
+		for (auto& ball : vecBalls) {
+			ball.vx += ball.ax * fElapsedTime;
+			ball.vy += ball.ax * fElapsedTime;
+			ball.px += ball.vx * fElapsedTime;
+			ball.py += ball.vy * fElapsedTime;
+
+			if (ball.px < 0) ball.px += (float)ScreenWidth();
+			if (ball.px >= ScreenWidth()) ball.px -= (float)ScreenWidth();
+			if (ball.py < 0) ball.py += (float)ScreenHeight();
+			if (ball.py >= ScreenHeight()) ball.py -= (float)ScreenHeight();
+
+			if (fabs(ball.vx*ball.vx + ball.vy*ball.vy) < 0.01f)
+			{
+				ball.vx = 0;
+				ball.vy = 0;
+			}
+		}
+
+
 		for (auto& ball : vecBalls)
 		{
 			for (auto& target : vecBalls) {
@@ -104,21 +133,27 @@ public:
 				{
 					if (DoCirclesOverlap(ball.px, ball.py, ball.radius, target.px, target.py, target.radius))
 					{
-						float fDistance = (sqrtf((ball.px - target.px)*(ball.px - target.px) + (ball.py - target.py) * (ball.py - target.py)));
+						vecCollidingPairs.push_back({ &ball, &target });
+
+						// calculating distance between two points of coordinates
+						float fDistance = sqrtf((ball.px - target.px)*(ball.px - target.px) + (ball.py - target.py) * (ball.py - target.py));
 						float fOverlap = 0.5f * (fDistance - ball.radius - target.radius);
+						
 
 						// current ball
 						ball.px -= fOverlap * (ball.px - target.px) / fDistance;
 						ball.py -= fOverlap * (ball.py - target.py) / fDistance;
-
+						
 						// target ball
 						target.px += fOverlap * (ball.px - target.px) / fDistance;
 						target.py += fOverlap * (ball.py - target.py) / fDistance;
 					}
 				}
-
 			}
 		}
+	    
+
+
 		Fill(0, 0, ScreenWidth(), ScreenHeight(), ' '); // clear screen
 		/*
 		srand(time(NULL));
@@ -131,7 +166,13 @@ public:
 	// drawing balls
 		for (auto bl : vecBalls)
 			DrawWireFrameModel(modelCircle, bl.px, bl.py, atan2f(bl.vy, bl.vx), bl.radius, FG_WHITE);
-
+		for (auto w : vecCollidingPairs) {
+			DrawLine(w.first->px, w.first->py, w.second->px, w.second->py, PIXEL_THREEQUARTERS, FG_RED);
+		}
+		if (pSelectBall != nullptr)
+		{
+			DrawLine(pSelectBall->px, pSelectBall->py, m_mousePosX, m_mousePosY, PIXEL_SOLID, FG_BLUE);
+		}
 		return true;
 	}
 
